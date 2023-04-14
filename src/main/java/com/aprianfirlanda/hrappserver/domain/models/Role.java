@@ -1,20 +1,14 @@
 package com.aprianfirlanda.hrappserver.domain.models;
 
 import jakarta.persistence.*;
+import org.hibernate.Hibernate;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
 @Table(name = "roles")
 public class Role {
-
-    public Role() {
-    }
-
-    public Role(ERole name) {
-        this.name = name;
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
@@ -40,4 +34,16 @@ public class Role {
         this.id = id;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Role role = (Role) o;
+        return getId() != null && Objects.equals(getId(), role.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
