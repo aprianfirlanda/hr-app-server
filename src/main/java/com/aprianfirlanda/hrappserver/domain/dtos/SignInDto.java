@@ -2,7 +2,7 @@ package com.aprianfirlanda.hrappserver.domain.dtos;
 
 import jakarta.validation.constraints.NotBlank;
 
-public class LoginDto {
+public class SignInDto {
     @NotBlank
     private String username;
 
