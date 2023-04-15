@@ -1,4 +1,4 @@
-package com.aprianfirlanda.hrappserver.payload.request;
+package com.aprianfirlanda.hrappserver.domain.dtos;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 
 import java.util.Set;
 
-public class SignUpRequest {
+public class SignUpDto {
     @NotBlank
     @Size(min = 3, max = 20)
     private String username;

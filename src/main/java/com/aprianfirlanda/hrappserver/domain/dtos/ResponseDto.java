@@ -1,9 +1,9 @@
-package com.aprianfirlanda.hrappserver.payload.response;
+package com.aprianfirlanda.hrappserver.domain.dtos;
 
-public class MessageResponse {
+public class ResponseDto {
     private String message;
 
-    public MessageResponse(String message) {
+    public ResponseDto(String message) {
         this.message = message;
     }
 

@@ -1,8 +1,8 @@
-package com.aprianfirlanda.hrappserver.payload.request;
+package com.aprianfirlanda.hrappserver.domain.dtos;
 
 import jakarta.validation.constraints.NotBlank;
 
-public class LoginRequest {
+public class LoginDto {
     @NotBlank
     private String username;
 

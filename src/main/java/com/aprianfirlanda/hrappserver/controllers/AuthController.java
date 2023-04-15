@@ -1,12 +1,12 @@
 package com.aprianfirlanda.hrappserver.controllers;
 
+import com.aprianfirlanda.hrappserver.domain.dtos.LoginDto;
+import com.aprianfirlanda.hrappserver.domain.dtos.ResponseDto;
+import com.aprianfirlanda.hrappserver.domain.dtos.SignUpDto;
+import com.aprianfirlanda.hrappserver.domain.dtos.UserInfoDto;
 import com.aprianfirlanda.hrappserver.domain.models.ERole;
 import com.aprianfirlanda.hrappserver.domain.models.Role;
 import com.aprianfirlanda.hrappserver.domain.models.User;
-import com.aprianfirlanda.hrappserver.payload.request.LoginRequest;
-import com.aprianfirlanda.hrappserver.payload.request.SignUpRequest;
-import com.aprianfirlanda.hrappserver.payload.response.MessageResponse;
-import com.aprianfirlanda.hrappserver.payload.response.UserInfoResponse;
 import com.aprianfirlanda.hrappserver.repositories.RoleRepository;
 import com.aprianfirlanda.hrappserver.repositories.UserRepository;
 import com.aprianfirlanda.hrappserver.security.jwt.JwtUtils;
@@ -50,11 +50,11 @@ public class AuthController {
         this.jwtUtils = jwtUtils;
     }
 
-    @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    @PostMapping("/sign-in")
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginDto loginDto) {
 
         Authentication authentication = authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+                .authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -67,28 +67,28 @@ public class AuthController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                .body(new UserInfoResponse(userDetails.getId(),
+                .body(new UserInfoDto(userDetails.getId(),
                         userDetails.getUsername(),
                         userDetails.getEmail(),
                         roles));
     }
 
-    @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest) {
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
+    @PostMapping("/sign-up")
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpDto signUpDto) {
+        if (userRepository.existsByUsername(signUpDto.getUsername())) {
+            return ResponseEntity.badRequest().body(new ResponseDto("Error: Username is already taken!"));
         }
 
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
+        if (userRepository.existsByEmail(signUpDto.getEmail())) {
+            return ResponseEntity.badRequest().body(new ResponseDto("Error: Email is already in use!"));
         }
 
         // Create new user's account
-        User user = new User(signUpRequest.getUsername(),
-                signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
+        User user = new User(signUpDto.getUsername(),
+                signUpDto.getEmail(),
+                encoder.encode(signUpDto.getPassword()));
 
-        Set<String> strRoles = signUpRequest.getRole();
+        Set<String> strRoles = signUpDto.getRole();
         Set<Role> roles = new HashSet<>();
 
         if (strRoles == null) {
@@ -112,13 +112,13 @@ public class AuthController {
         user.setRoles(roles);
         userRepository.save(user);
 
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        return ResponseEntity.ok(new ResponseDto("User registered successfully!"));
     }
 
-    @PostMapping("/signout")
+    @PostMapping("/sign-out")
     public ResponseEntity<?> logoutUser() {
         ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(new MessageResponse("You've been signed out!"));
+                .body(new ResponseDto("You've been signed out!"));
     }
 }

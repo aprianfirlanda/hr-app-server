@@ -1,15 +1,15 @@
-package com.aprianfirlanda.hrappserver.payload.response;
+package com.aprianfirlanda.hrappserver.domain.dtos;
 
 import java.util.List;
 import java.util.UUID;
 
-public class UserInfoResponse {
+public class UserInfoDto {
     private UUID id;
     private String username;
     private String email;
     private List<String> roles;
 
-    public UserInfoResponse(UUID id, String username, String email, List<String> roles) {
+    public UserInfoDto(UUID id, String username, String email, List<String> roles) {
         this.id = id;
         this.username = username;
         this.email = email;
