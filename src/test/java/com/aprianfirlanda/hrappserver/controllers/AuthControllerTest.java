@@ -24,7 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = HrAppServerApplication.class)
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestPropertySource(locations = "classpath:application-test.properties")
 class AuthControllerTest {
 
@@ -75,7 +74,6 @@ class AuthControllerTest {
     }
 
     @Test
-    @Order(3)
     void logoutUser() throws Exception {
         Cookie cookie = new Cookie("customData", "customString");
         mockMvc.perform(post("/auth/sign-out")
