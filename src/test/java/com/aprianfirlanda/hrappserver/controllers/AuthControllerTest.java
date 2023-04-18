@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = HrAppServerApplication.class)
 @AutoConfigureMockMvc
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource(locations = "classpath:application-test.properties")
 class AuthControllerTest {
 
@@ -34,11 +33,11 @@ class AuthControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    @Sql(scripts = "user-register-delete.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    @Sql(scripts = "register-user-delete.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void registerUser() throws Exception {
         SignUpDto signUpDto = new SignUpDto();
-        signUpDto.setUsername("test-user");
-        signUpDto.setEmail("test.user@gmail.com");
+        signUpDto.setUsername("test-register-user");
+        signUpDto.setEmail("test.register.user@gmail.com");
         signUpDto.setPassword("password");
         Set<String> roleSet = new HashSet<>();
         roleSet.add("ROLE_USER");
@@ -53,11 +52,11 @@ class AuthControllerTest {
     }
 
     @Test
-    @Sql(scripts = "user-register-insert.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "user-register-delete.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    @Sql(scripts = "authenticate-user-insert.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "authenticate-user-delete.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void authenticateUser() throws Exception {
         SignInDto signInDto = new SignInDto();
-        signInDto.setUsername("test-user");
+        signInDto.setUsername("test-login-user");
         signInDto.setPassword("password");
 
         mockMvc.perform(post("/auth/sign-in")
@@ -67,7 +66,7 @@ class AuthControllerTest {
                 .andExpect(cookie().exists("hrapp"))
                 .andExpect(jsonPath("$.id").isString())
                 .andExpect(jsonPath("$.username").value(signInDto.getUsername()))
-                .andExpect(jsonPath("$.email").value("test.user@email.com"))
+                .andExpect(jsonPath("$.email").value("test.login.user@email.com"))
                 .andExpect(jsonPath("$.roles").isArray())
                 .andExpect(jsonPath("$.roles[0]").value("ROLE_USER"))
                 .andDo(print());
