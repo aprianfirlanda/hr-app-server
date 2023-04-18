@@ -58,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
                 encoder.encode(signUpDto.getPassword())
         );
 
-        Set<String> strRoles = signUpDto.getRole();
+        Set<String> strRoles = signUpDto.getRoles();
         Set<Role> roles = new HashSet<>();
 
         final String ROLE_NOT_FOUND = "Error: Role is not found";
