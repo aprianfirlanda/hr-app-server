@@ -9,17 +9,20 @@ import com.aprianfirlanda.hrappserver.repositories.RoleRepository;
 import com.aprianfirlanda.hrappserver.repositories.UserRepository;
 import com.aprianfirlanda.hrappserver.security.services.UserDetailsImpl;
 import com.aprianfirlanda.hrappserver.services.AuthService;
+import com.aprianfirlanda.hrappserver.services.EmailService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Service
+@Transactional(readOnly = true)
 public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
 
@@ -29,19 +32,23 @@ public class AuthServiceImpl implements AuthService {
 
     private final PasswordEncoder encoder;
 
+    private final EmailService emailService;
+
     public AuthServiceImpl(
             AuthenticationManager authenticationManager,
             UserRepository userRepository,
             RoleRepository roleRepository,
-            PasswordEncoder encoder
-    ) {
+            PasswordEncoder encoder,
+            EmailService emailService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.encoder = encoder;
+        this.emailService = emailService;
     }
 
     @Override
+    @Transactional
     public void userRegistration(SignUpDto signUpDto) {
         if (userRepository.existsByUsername(signUpDto.getUsername())) {
             throw new IllegalArgumentException("Error: Username is already taken!");
@@ -82,6 +89,7 @@ public class AuthServiceImpl implements AuthService {
 
         user.setRoles(roles);
         userRepository.save(user);
+        emailService.sendEmail(user.getEmail(), "HR APP Registration", "Anda telah terdaftar aplikasi HR. Terimakasih");
     }
 
     @Override
