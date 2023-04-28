@@ -15,6 +15,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -59,5 +60,14 @@ public class AuthController {
         ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new ResponseDto("You've been signed out!"));
+    }
+
+    @GetMapping("/verify-register")
+    public ResponseDto verifyUserRegistration(
+            @RequestParam String token
+    ) {
+        authService.verifyUserRegistration(UUID.fromString(token));
+
+        return new ResponseDto("User registered successfully!");
     }
 }

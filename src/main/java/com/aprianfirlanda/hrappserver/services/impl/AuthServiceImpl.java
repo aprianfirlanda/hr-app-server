@@ -2,9 +2,7 @@ package com.aprianfirlanda.hrappserver.services.impl;
 
 import com.aprianfirlanda.hrappserver.domain.dtos.SignInDto;
 import com.aprianfirlanda.hrappserver.domain.dtos.SignUpDto;
-import com.aprianfirlanda.hrappserver.domain.models.ERole;
-import com.aprianfirlanda.hrappserver.domain.models.Role;
-import com.aprianfirlanda.hrappserver.domain.models.User;
+import com.aprianfirlanda.hrappserver.domain.models.*;
 import com.aprianfirlanda.hrappserver.repositories.RoleRepository;
 import com.aprianfirlanda.hrappserver.repositories.UserRepository;
 import com.aprianfirlanda.hrappserver.security.services.UserDetailsImpl;
@@ -18,8 +16,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 @Transactional(readOnly = true)
@@ -34,17 +35,20 @@ public class AuthServiceImpl implements AuthService {
 
     private final EmailService emailService;
 
-    public AuthServiceImpl(
-            AuthenticationManager authenticationManager,
-            UserRepository userRepository,
-            RoleRepository roleRepository,
-            PasswordEncoder encoder,
-            EmailService emailService) {
+    private final VerificationTokenRepository verificationTokenRepository;
+
+    public AuthServiceImpl(AuthenticationManager authenticationManager,
+                           UserRepository userRepository,
+                           RoleRepository roleRepository,
+                           PasswordEncoder encoder,
+                           EmailService emailService,
+                           VerificationTokenRepository verificationTokenRepository) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.encoder = encoder;
         this.emailService = emailService;
+        this.verificationTokenRepository = verificationTokenRepository;
     }
 
     @Override
@@ -89,7 +93,20 @@ public class AuthServiceImpl implements AuthService {
 
         user.setRoles(roles);
         userRepository.save(user);
-        emailService.sendEmail(user.getEmail(), "HR APP Registration", "Anda telah terdaftar aplikasi HR. Terimakasih");
+
+        VerificationToken verificationToken = new VerificationToken();
+        verificationToken.setExpireDate(Instant.now().plus(3, ChronoUnit.DAYS));
+        verificationToken.setUserId(user);
+        verificationTokenRepository.save(verificationToken);
+
+        emailService.sendEmail(
+                user.getEmail(),
+                "HR APP Registration",
+                "Anda melakukan pendaftaran akun di HR APP\n" +
+                        "Silahkan klik link dibawah untuk konfirmasi\n" +
+                        "http://localhost:8080/auth/verify-register?token=" + verificationToken.getId() + "\n" +
+                        "Terimakasih"
+        );
     }
 
     @Override
@@ -104,5 +121,19 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return (UserDetailsImpl) authentication.getPrincipal();
+    }
+
+    @Override
+    @Transactional
+    public void verifyUserRegistration(UUID token) {
+        VerificationToken verificationToken = verificationTokenRepository
+                .findByIdAndExpireDateAfter(token, Instant.now())
+                .orElseThrow(() -> new IllegalArgumentException("Error: token tidak valid"));
+
+        User user = userRepository.findById(verificationToken.getUserId().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Error: user tidak ditemukan"));
+
+        user.setEnabled(true);
+        userRepository.save(user);
     }
 }
